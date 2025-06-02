@@ -57,10 +57,9 @@ bash
 Copy
 Edit
 cd ~
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
-cd YOUR_REPO_NAME
+git clone https://github.com/gsrit/Raspberry-Pi-4B.git
+cd 
 chmod +x oled-display-rpi.py
-🔁 Replace YOUR_USERNAME/YOUR_REPO_NAME with your actual GitHub repo path.
 
 4. Test the Script
 bash
