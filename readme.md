@@ -1,128 +1,160 @@
-OLED WAN Monitor for Raspberry Pi
-Displays real-time data on a 1.3" SH1106 I2C OLED display:
+# OLED WAN Monitor for Raspberry Pi 4B
 
-🌐 WAN Latency (to 8.8.8.8) or shows "Down" if there's no internet
+Displays real-time information on a 1.3" SH1106 I2C OLED display:
 
-🌡️ CPU Temperature
+- **WAN Latency** to 8.8.8.8 (or shows "Down" if no internet)
+- **CPU Temperature**
+- **LAN Client Count** using `nmap`
 
-🖧 LAN Client Count (via nmap scan)
+Designed for Raspberry Pi 4B running Raspberry Pi OS (Bullseye or newer).
 
-Tested on Raspberry Pi 4B running Raspberry Pi OS (Bullseye).
+---
 
-🧰 Hardware Requirements
-Raspberry Pi (4B recommended)
+## Hardware Requirements
 
-1.3" I2C OLED Display (SH1106, 128x64)
+- Raspberry Pi 4B (or any model with I2C support)
+- 1.3" I2C OLED Display (SH1106, 128x64)
+- 4 Female-to-Female Jumper Wires
 
-4 Jumper Wires
+### Wiring: OLED to Raspberry Pi GPIO
 
-OLED to Raspberry Pi Wiring
-OLED Pin	Raspberry Pi GPIO Pin
-GND	Pin 6 (GND)
-VCC	Pin 1 (3.3V)
-SCL	Pin 5 (GPIO3 / SCL1)
-SDA	Pin 3 (GPIO2 / SDA1)
+| OLED Pin | Pi Pin | GPIO       | Description       |
+|----------|--------|------------|-------------------|
+| GND      | Pin 6  | GND        | Ground            |
+| VCC      | Pin 1  | 3.3V       | Power             |
+| SCL      | Pin 5  | GPIO3 (SCL)| I2C Clock         |
+| SDA      | Pin 3  | GPIO2 (SDA)| I2C Data          |
 
-⚙️ Software Setup
-Start with a fresh Raspberry Pi OS and internet connection.
+---
 
-1. Enable I2C
+## Software Installation (from scratch)
+
+### 1. Enable I2C Interface
+
 Run:
 
-bash
-Copy
-Edit
+```bash
 sudo raspi-config
-Navigate to: Interface Options > I2C > Enable
+```
 
-Reboot when prompted.
+Navigate to:  
+`Interface Options` → `I2C` → Enable → Reboot when prompted.
 
-2. Install Dependencies
-bash
-Copy
-Edit
+---
+
+### 2. Install Dependencies
+
+```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install python3 python3-pip python3-pil python3-dev i2c-tools nmap git -y
+sudo apt install -y python3 python3-pip python3-pil python3-dev i2c-tools nmap git
 sudo pip3 install sh1106
-(Optional) Verify I2C OLED detection:
+```
 
-bash
-Copy
-Edit
+To verify OLED is detected:
+
+```bash
 i2cdetect -y 1
-You should see an address like 0x3c.
+```
 
-3. Clone the Repository
-bash
-Copy
-Edit
+You should see `3c` on the grid if connected correctly.
+
+---
+
+### 3. Clone This Repository
+
+```bash
 cd ~
 git clone https://github.com/gsrit/Raspberry-Pi-4B.git
-cd 
+cd Raspberry-Pi-4B
 chmod +x oled-display-rpi.py
+```
 
-4. Test the Script
-bash
-Copy
-Edit
+---
+
+### 4. Test the Script
+
+```bash
 python3 oled-display-rpi.py
-You should see:
+```
 
-WAN-10ms / Down
+Output will be shown on the OLED as:
 
-CPU - 30°C
+```
+WAN - 15ms / Down
+CPU - 45°C
+LAN Clients - 5
+```
 
-LAN Clients - X
+Stop with `Ctrl + C`.
 
-Press Ctrl+C to stop.
+---
 
-🚀 Auto-Start on Boot (systemd)
-1. Create a Service File
-bash
-Copy
-Edit
+## Auto-Run on Boot with systemd
+
+### 1. Create a systemd Service File
+
+```bash
 sudo nano /etc/systemd/system/oled-display.service
-Paste this:
+```
 
-ini
-Copy
-Edit
+Paste this (modify path if your username differs):
+
+```ini
 [Unit]
 Description=OLED Display WAN Monitor
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /home/pi/YOUR_REPO_NAME/oled-display-rpi.py
-WorkingDirectory=/home/pi/YOUR_REPO_NAME
+ExecStart=/usr/bin/python3 /home/pi/Raspberry-Pi-4B/oled-display-rpi.py
+WorkingDirectory=/home/pi/Raspberry-Pi-4B
 Restart=always
 User=pi
 
 [Install]
 WantedBy=multi-user.target
-✅ Update paths to match your setup.
+```
 
-2. Enable and Start the Service
-bash
-Copy
-Edit
+---
+
+### 2. Enable and Start the Service
+
+```bash
 sudo systemctl daemon-reload
 sudo systemctl enable oled-display.service
 sudo systemctl start oled-display.service
-Check if it’s running:
+```
 
-bash
-Copy
-Edit
+Check if it works:
+
+```bash
 sudo systemctl status oled-display.service
-View logs:
+```
 
-bash
-Copy
-Edit
+See live logs:
+
+```bash
 journalctl -u oled-display.service -e
-🧪 Troubleshooting
-Blank screen? Check wiring and run i2cdetect -y 1.
+```
 
-nmap crashes? Try nmap -sn --max-retries=1 --host-timeout=5s 192.168.X.0/24
+---
 
-Script exits silently? Isolate and run parts of the script manually.
+## Troubleshooting
+
+- **Nothing on screen:** Check I2C wiring and run `i2cdetect -y 1`
+- **Display flashes once and goes blank:** Likely a Python script issue or crash—check logs.
+- **nmap crashes:** Use reduced scan options:
+  ```bash
+  nmap -sn --max-retries=1 --host-timeout=5s 192.168.111.0/24
+  ```
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## Author
+
+[gsrit](https://github.com/gsrit)
